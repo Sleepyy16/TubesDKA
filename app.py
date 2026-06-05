@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 
-# --- Copying the logic from your notebook ---
+# --- Fuzzy Logic Functions ---
 risk_universe = np.linspace(0, 1, 100)
 def mf_low(x): return np.maximum(0, np.minimum(1, (0.4 - x) / 0.4))
 def mf_med(x): return np.maximum(0, np.minimum((x - 0.2) / 0.3, (0.8 - x) / 0.3))
@@ -50,24 +50,41 @@ def sugeno_raw(row):
 
 # --- Streamlit UI ---
 st.title("Heart Disease Prediction - Fuzzy Logic")
-st.write("Input patient data to calculate risk score.")
+st.write("Silakan masukkan data pasien di bawah ini.")
 
-# Assuming inputs are scaled 0-1 as in your X_raw_eval
-f0 = st.slider("Exercise Induced Angina (0-1)", 0.0, 1.0, 0.0)
-f1 = st.slider("Smoking (0-1)", 0.0, 1.0, 0.0)
-f2 = st.slider("Diabetes (0-1)", 0.0, 1.0, 0.0)
-f3 = st.slider("Cholesterol (Scaled 0-1)", 0.0, 1.0, 0.5)
-f4 = st.slider("Age (Scaled 0-1)", 0.0, 1.0, 0.5)
+# Inputs
+col_a, col_b = st.columns(2)
+with col_a:
+    age = st.number_input("Umur (Tahun)", min_value=1, max_value=120, value=45)
+    chol = st.number_input("Kolesterol (mg/dl)", min_value=100, max_value=600, value=200)
+with col_b:
+    smoking = st.selectbox("Apakah Pasien Merokok?", ["No", "Yes"])
+    diabetes = st.selectbox("Apakah Pasien Diabetes?", ["No", "Yes"])
+    exang = st.selectbox("Nyeri Dada Saat Olahraga? (Exercise Induced Angina)", ["No", "Yes"])
 
-input_data = [f0, f1, f2, f3, f4]
+# Normalize inputs to 0-1 range for the model
+# Assuming typical min-max from common heart datasets
+f_age = (age - 20) / 60  # Scale age 20-80 to 0-1
+f_chol = (chol - 120) / 300 # Scale chol 120-420 to 0-1
+f_smoking = 1.0 if smoking == "Yes" else 0.0
+f_diabetes = 1.0 if diabetes == "Yes" else 0.0
+f_exang = 1.0 if exang == "Yes" else 0.0
 
-if st.button("Predict"):
+# Internal feature order: [Exercise, Smoking, Diabetes, Cholesterol, Age]
+input_data = [f_exang, f_smoking, f_diabetes, f_chol, f_age]
+
+if st.button("Prediksi Risiko"):
     m_res = mamdani_raw(input_data)
     s_res = sugeno_raw(input_data)
-    
-    col1, col2 = st.columns(2)
-    col1.metric("Mamdani Risk", f"{m_res:.2f}")
-    col2.metric("Sugeno Risk", f"{s_res:.2f}")
-    
-    status = "High Risk" if m_res > 0.5 else "Low Risk"
-    st.subheader(f"Prediction Status: {status}")
+
+    st.divider()
+    c1, c2 = st.columns(2)
+    c1.metric("Skor Mamdani", f"{m_res:.2%}")
+    c2.metric("Skor Sugeno", f"{s_res:.2%}")
+
+    if m_res > 0.6:
+        st.error("Status: RISIKO TINGGI")
+    elif m_res > 0.3:
+        st.warning("Status: RISIKO SEDANG")
+    else:
+        st.success("Status: RISIKO RENDAH")
