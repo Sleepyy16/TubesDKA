@@ -50,7 +50,7 @@ def sugeno_raw(row):
 
 # --- Streamlit UI ---
 st.title("Heart Disease Prediction - Fuzzy Logic")
-st.write("Silakan masukkan data pasien di bawah ini.")
+st.write("Silakan masukkan data di bawah ini.")
 
 # Inputs
 col_a, col_b = st.columns(2)
@@ -58,8 +58,8 @@ with col_a:
     age = st.number_input("Umur (Tahun)", min_value=1, max_value=120, value=45)
     chol = st.number_input("Kolesterol (mg/dl)", min_value=100, max_value=600, value=200)
 with col_b:
-    smoking = st.selectbox("Apakah Pasien Merokok?", ["No", "Yes"])
-    diabetes = st.selectbox("Apakah Pasien Diabetes?", ["No", "Yes"])
+    smoking = st.selectbox("Apakah Anda Merokok?", ["No", "Yes"])
+    diabetes = st.selectbox("Apakah Anda Diabetes?", ["No", "Yes"])
     exang = st.selectbox("Nyeri Dada Saat Olahraga? (Exercise Induced Angina)", ["No", "Yes"])
 
 # Normalize inputs to 0-1 range for the model
